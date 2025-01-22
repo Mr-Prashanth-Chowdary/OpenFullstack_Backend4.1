@@ -5,6 +5,8 @@ const app = require('../app')
 const supertest = require('supertest')
 const assert = require('node:assert')
 const api = supertest(app)
+
+// dummy data
 const helper = require('./test_helper')
 
 beforeEach(async()=>{
