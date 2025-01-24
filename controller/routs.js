@@ -1,9 +1,8 @@
 const route = require('express').Router()
 const Blog = require('../model/db')
 const User = require('../model/User')
-const jwt  = require('jsonwebtoken')
-const jwtKey = require('../utils/config') 
-
+const TokenX = require('../middlewares/jsonTokenExtractor')
+const userX = require('../middlewares/userExtractor')
 // helpper function for extracting token -> moved to middleware
 // const getTokenData = request =>{
 //   const authentication = request.get('authorization')
@@ -17,7 +16,7 @@ route.get('/', async(request, response) => {
   const blogs = await Blog.find({})
   response.json(blogs)
 })
-route.post('/', async(request, response,next) => {
+route.post('/',TokenX.getToken,userX.getUser,async(request, response,next) => {
 
   const {title,author,url,likes} = request.body
   const owner = request.user
@@ -40,11 +39,14 @@ route.post('/', async(request, response,next) => {
   }
 })
 
-route.delete('/:id',async(request,response,next)=>{
+route.delete('/:id',TokenX.getToken,userX.getUser,async(request,response,next)=>{
   try{
   const {id} = request.params
+  console.log('this is blog id',id)
   const user = await User.findById(request.id)
+  console.log(user)
   const userblogId = user.blogs.find((blogId)=>blogId.toString() === id)
+  console.log(userblogId)
   if(!userblogId){
     return response.status(401).json({error:'unauthorized access'})
   }
@@ -55,11 +57,15 @@ route.delete('/:id',async(request,response,next)=>{
 }
 })
 
-route.put('/:id',async(request,response)=>{
+route.put('/:id',TokenX.getToken,userX.getUser,async(request,response,next)=>{
+  try{
   const {id} = request.params
   const {likes,...rest} = request.body
   const dbRes = await Blog.findByIdAndUpdate(id,{likes, ...rest},{new:true})
   response.status(200).json({message:'blog updated',blog:dbRes})
+  }catch(e){
+    next(e)
+  }
 })
 
 module.exports = route

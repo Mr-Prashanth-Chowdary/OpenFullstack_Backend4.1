@@ -18,8 +18,8 @@ mongoose.connect(mongoUrl).then(()=>logger.info('db connected')).catch((error)=>
 app.use(cors())
 app.use(express.json())
 app.use('/api/auth',auth)
-app.use(JsonTX.getToken)
-app.use('/api/blogs',userX.getUser,routes)
+// app.use(JsonTX.getToken) - > moving to router spacific middleware
+app.use('/api/blogs',routes)
 app.use('/api/users',usersRouter)
 app.use(errorHandler)
 
