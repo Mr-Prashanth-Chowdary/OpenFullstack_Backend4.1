@@ -1,10 +1,27 @@
-const errorHandler = (error,req,res,next)=>{
-    if (error.name === 'CastError') {
-        return response.status(400).send({ error: 'malformatted id' })
-      } else if (error.name === 'ValidationError') {
-        return response.status(400).json({ error: error.message })
-      } else if (error.name === 'MongoServerError' && error.message.includes('E11000 duplicate key error')) {
-        return response.status(400).json({ error: 'expected `username` to be unique' })
+const errorHandler = (error, req, res, next) => {
+  console.error(error); // Use console.error to highlight this as an error in logs
+
+  if (error.name === 'CastError') {
+      return res.status(400).send({ error: 'Malformatted ID' });
+  } 
+  
+  if (error.name === 'ValidationError') {
+      return res.status(400).json({ error: error.message });
+  } 
+  
+  if (error.name === 'MongoServerError' && error.code === 11000) {
+      return res.status(400).json({ error: 'Expected `username` to be unique' });
+  }
+
+  if (error.name === 'JsonWebTokenError') {
+      if (error.message === 'jwt must be provided') {
+          return res.status(401).json({ error: 'Unauthorized access - Token missing' });
       }
-      next(err)
-}
+      return res.status(401).json({ error: 'Invalid token' });
+  }
+
+  // Fallback for unhandled errors
+  res.status(500).json({ error: 'Internal server error' });
+};
+
+module.exports = errorHandler;
